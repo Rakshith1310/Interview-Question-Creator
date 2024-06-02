@@ -16,4 +16,7 @@ conda activate interview_question_creator
 
 ```bash
 1. git clone <link_of_repository>
+2. git add .
+3. git commit -m "commit_message"
+4. git push origin main
 ```
