@@ -11,6 +11,10 @@ conda create -n interview_question_creator python=3.10 -y
 ```bash
 conda activate interview_question_creator
 ```
+3. Install requirements
+```bash
+pip install -r requirements.txt
+```
 
 ### GitHub Commands
 
