@@ -1,16 +1,18 @@
 import os
-from langchain.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import TokenTextSplitter
 from langchain.docstore.document import Document
-from langchain.chat_models import ChatOpenAI
+from langchain_community.chat_models import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.chains.summarize import load_summarize_chain
-from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain_community.embeddings.openai import OpenAIEmbeddings
 from langchain.chains import RetrievalQA
-from langchain.vectorstores import FAISS
-from prompt import prompt_template, refine_question_template
+from langchain_community.vectorstores import FAISS
+# from prompt import prompt_template, refine_question_template
 from dotenv import load_dotenv
+from src.prompt import prompt_template, refine_question_template
 
+# OpenAI authentication.
 load_dotenv()
 OPENAI_API = os.getenv('OPENAI_API_KEY')
 os.environ['OPENAI_API_KEY'] = OPENAI_API
@@ -24,13 +26,15 @@ def file_processing(file_path):
 
     for page in data:
         question_gen += page.page_content
+
+    # Generate chunks of questions and answers using LLM
     splitter_ques_gen = TokenTextSplitter(
         model_name = 'gpt-3.5-turbo',
         chunk_size = 10000,
         chunk_overlap = 200
     )
 
-    chunks_ques_gen = splitter_ques_gen.split_text(question_gen)
+    chunks_ques_gen = splitter_ques_gen.split_text(question_gen) # split text into chunks
 
     document_ques_gen = [Document(page_content=t) for t in chunks_ques_gen]
 
@@ -48,7 +52,6 @@ def file_processing(file_path):
     return document_ques_gen, document_answer_gen
 
 def llm_pipeline(file_path):
-
     document_ques_gen, document_answer_gen = file_processing(file_path)
 
     llm_ques_gen_pipeline = ChatOpenAI(
@@ -56,16 +59,9 @@ def llm_pipeline(file_path):
         model = "gpt-3.5-turbo"
     )
 
-   
-
     PROMPT_QUESTIONS = PromptTemplate(template=prompt_template, input_variables=["text"])
 
-    
-
-    REFINE_PROMPT_QUESTIONS = PromptTemplate(
-        input_variables=["existing_answer", "text"],
-        template=refine_question_template,
-    )
+    REFINE_PROMPT_QUESTIONS = PromptTemplate(input_variables=["existing_answer", "text"],template=refine_question_template)
 
     ques_gen_chain = load_summarize_chain(llm = llm_ques_gen_pipeline, 
                                             chain_type = "refine", 
@@ -74,7 +70,6 @@ def llm_pipeline(file_path):
                                             refine_prompt=REFINE_PROMPT_QUESTIONS)
 
     ques = ques_gen_chain.run(document_ques_gen)
-
     embeddings = OpenAIEmbeddings()
 
     vector_store = FAISS.from_documents(document_answer_gen, embeddings)
