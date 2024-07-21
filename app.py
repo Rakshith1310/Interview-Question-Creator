@@ -59,22 +59,12 @@ def get_csv(file_path):
 
     return output_file
 
-# @app.post("/analyze")
-# async def chat(request: Request, pdf_file_name: str = Form(...)):
-#     print("----GOING HERER-----------------------")
-#     output_file = get_csv(pdf_file_name)
-#     response_data = jsonable_encoder(json.dumps({"output_file": output_file}))
-#     res = Response(response_data)
-#     print(f"---------RESPONSE is {res}------------")
-#     return res
-
 @app.post("/analyze")
 async def chat(request: Request, pdf_filename: str = Form(...)):
-    print("----GOING HERER YESSSSSSS-----------------------")
     output_file = get_csv(pdf_filename)
     response_data = jsonable_encoder(json.dumps({"output_file": output_file}))
     res = Response(response_data)
-    print(f"==========Resopse is ${res}")
+    # print(f"==========Resopse is ${res}=========")
     return res
 
 if __name__ == "__main__":
